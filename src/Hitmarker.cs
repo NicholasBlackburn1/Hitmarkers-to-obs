@@ -4,6 +4,12 @@ using System.Collections;
 using System.Collections.Generic;
 
 using NEP.Hitmarkers.Utilities;
+using System.Net;
+using MelonLoader.TinyJSON;
+using System.Threading.Tasks;
+using System.IO;
+using MelonLoader;
+using Newtonsoft.Json.Linq;
 
 namespace NEP.Hitmarkers
 {
@@ -66,6 +72,49 @@ namespace NEP.Hitmarkers
             gameObject.SetActive(false);
         }
 
+        private string deaths(int kills)
+        {
+            var data = new[] {
+
+                new {total = kills}
+            };
+
+            var json = JArray.FromObject(data)[0].ToString();
+            return json;
+        }
+        // so i can send it this shit to obs
+        public async Task sendkillsAsync(string data)
+        {
+            MelonLogger.Msg("trying to send data to server");
+
+            HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create("http://127.0.0.1:5000/setkills");
+            httpWebRequest.ContentType = "application/json; charset=utf-8";
+            httpWebRequest.Method = "POST";
+
+            var json = JSON.Load(data);
+
+            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+            {
+
+                await streamWriter.WriteAsync(json);
+                streamWriter.Flush();
+                streamWriter.Close();
+            }
+            using (var response = httpWebRequest.GetResponse() as HttpWebResponse)
+            {
+                if (httpWebRequest.HaveResponse && response != null)
+                {
+                    using (var reader = new StreamReader(response.GetResponseStream()))
+                    {
+
+                        MelonLogger.Msg("kills being sent");
+
+                    }
+                }
+            }
+        }
+
+
         private void OnEnable()
         {
             float distanceFromShot = HitmarkerManager._instance.distanceFromShot;
@@ -90,7 +139,9 @@ namespace NEP.Hitmarkers
             {
                 Audio.HitmarkerAudio.PlayAtPoint(hitFinisherClip, transform.position);
                 animator.Play("hm_finisher_appear1");
-                
+       
+               
+
             }
             else
             {
@@ -105,6 +156,9 @@ namespace NEP.Hitmarkers
         public void UseFinisherHitmarker(bool use)
         {
             finisherHitmarker = use;
+            killed += 1;
+            MelonLogger.Msg("u killed about " + killed);
+            sendkillsAsync(deaths(killed));
         }
 
         private void PlayRandomAnim()
@@ -121,11 +175,13 @@ namespace NEP.Hitmarkers
             }
         }
 
+        private int killed = 0;
         private void Update()
         {
             if (finisherHitmarker)
             {
                 deathSkullGO.SetActive(HitmarkerManager._instance.useDeathSkull);
+                
             }
 
             transform.LookAt(HitmarkerManager.GetPlayerHead());

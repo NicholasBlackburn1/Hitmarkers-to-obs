@@ -11,9 +11,9 @@ namespace NEP.Hitmarkers
 {
     public static class BuildInfo
     {
-        public const string Name = "Hitmarkers"; // Name of the Mod.  (MUST BE SET)
-        public const string Description = "Simple hitmarkers mod for Boneworks."; // Description for the Mod.  (Set as null if none)
-        public const string Author = "Not Enough Photons"; // Author of the Mod.  (MUST BE SET)
+        public const string Name = "Hitmarkers OWO"; // Name of the Mod.  (MUST BE SET)
+        public const string Description = "Simple hitmarkers mod for Boneworks. and obs"; // Description for the Mod.  (Set as null if none)
+        public const string Author = "Nicky blackburn"; // Author of the Mod.  (MUST BE SET)
         public const string Company = "Not Enough Photons"; // Company that made the Mod.  (Set as null if none)
         public const string Version = "1.0.0"; // Version of the Mod.  (MUST BE SET)
         public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
