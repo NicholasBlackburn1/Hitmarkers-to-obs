@@ -6,6 +6,13 @@ using PuppetMasta;
 
 using System.Collections.Generic;
 using System.Linq;
+using MelonLoader;
+using System.IO;
+using System.Net;
+using System.Threading.Tasks;
+using MelonLoader.TinyJSON;
+using Newtonsoft.Json.Linq;
+using System;
 
 namespace NEP.Hitmarkers
 {
@@ -136,6 +143,56 @@ namespace NEP.Hitmarkers
                 SpawnHitmarker(false, impactWorld);
             }
         }
+        private string deaths(int kills)
+        {
+            var data = new[] {
+
+                new {total = kills}
+            };
+
+            var json = JArray.FromObject(data)[0].ToString();
+            return json;
+        }
+        // so i can send it this shit to obs
+        public async Task sendkillsAsync(string data)
+        {
+            try
+            {
+                MelonLogger.Msg("trying to send data to server");
+
+                HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create("http://127.0.0.1:5000/setkills");
+                httpWebRequest.ContentType = "application/json; charset=utf-8";
+                httpWebRequest.Method = "POST";
+
+                var json = JSON.Load(data);
+
+                using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+                {
+
+                    streamWriter.WriteAsync(json);
+                    streamWriter.Flush();
+                    streamWriter.Close();
+                }
+           
+            using (var response = httpWebRequest.GetResponse() as HttpWebResponse)
+            {
+                if (httpWebRequest.HaveResponse && response != null)
+                {
+                    using (var reader = new StreamReader(response.GetResponseStream()))
+                    {
+
+                        MelonLogger.Msg(reader.ReadToEnd());
+                    }
+                }
+            }
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Msg(e.Message);
+            }
+        }
+
+        private int killed = 0;
 
         private void EvaluateNPC(Transform transform, Vector3 impactWorld)
         {
@@ -145,8 +202,12 @@ namespace NEP.Hitmarkers
             if (brain == null) { return; }
 
             BehaviourBaseNav navBehaviour = brain.behaviour;
-
-            if (navBehaviour.puppetMaster.isDead || navBehaviour == deadNPCs.FirstOrDefault((npc) => npc == navBehaviour)) { return; }
+           
+            if (navBehaviour.puppetMaster.isDead || navBehaviour == deadNPCs.FirstOrDefault((npc) => npc == navBehaviour)) {
+                killed += 1;
+                MelonLogger.Msg("u killed about " + killed);
+                sendkillsAsync(deaths(killed));
+                return; }
 
             SpawnHitmarker(navBehaviour.puppetMaster.isKilling, impactWorld);
         }
