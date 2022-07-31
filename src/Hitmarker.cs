@@ -156,9 +156,7 @@ namespace NEP.Hitmarkers
         public void UseFinisherHitmarker(bool use)
         {
             finisherHitmarker = use;
-            killed += 1;
-            MelonLogger.Msg("u killed about " + killed);
-            sendkillsAsync(deaths(killed));
+          
         }
 
         private void PlayRandomAnim()
@@ -181,7 +179,9 @@ namespace NEP.Hitmarkers
             if (finisherHitmarker)
             {
                 deathSkullGO.SetActive(HitmarkerManager._instance.useDeathSkull);
-                
+                killed += 1;
+                MelonLogger.Msg("u killed about " + killed);
+                sendkillsAsync(deaths(killed));
             }
 
             transform.LookAt(HitmarkerManager.GetPlayerHead());
